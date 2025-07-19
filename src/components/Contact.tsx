@@ -11,6 +11,9 @@ import emailjs from "@emailjs/browser";
 const SERVICE_ID = "service_3aq5xm9";
 const TEMPLATE_ID = "template_uwxlq6w";
 const PUBLIC_KEY = "HKFXOAyTguC1nkSH9";
+const RESUME_URL = "https://drive.google.com/uc?export=download&id=1hOvoII8wakL_TCFXJCZAdVs6xG31_Om-";
+const RECAPTCHA_SITE_KEY = "YOUR_RECAPTCHA_SITE_KEY"; // Replace with your reCAPTCHA key
+const GOOGLE_SHEET_WEBHOOK = "https://your-google-apps-script-url.com"; // Optional
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -19,7 +22,7 @@ const Contact = () => {
     subject: "",
     message: ""
   });
-
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -27,32 +30,50 @@ const Contact = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    emailjs.send(
-      SERVICE_ID,
-      TEMPLATE_ID,
-      {
+    try {
+      // reCAPTCHA execution
+      const token = await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "submit" });
+
+      // Send Email
+      await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
         from_name: formData.name,
         reply_to: formData.email,
         subject: formData.subject,
-        message: formData.message
-      },
-      PUBLIC_KEY
-    )
-    .then(() => {
+        message: formData.message,
+        "g-recaptcha-response": token
+      }, PUBLIC_KEY);
+
+      // Log to Google Sheet (Optional)
+      fetch(GOOGLE_SHEET_WEBHOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+
       toast({
         title: "Message Sent",
         description: "Thank you! I'll get back to you shortly."
       });
+
       setFormData({ name: "", email: "", subject: "", message: "" });
-    })
-    .catch(() => {
+    } catch (err) {
       toast({
         title: "Error",
         description: "Message failed to send. Please try again later."
       });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResumeDownload = () => {
+    toast({
+      title: "Resume Downloaded",
+      description: "Your download should begin shortly."
     });
   };
 
@@ -110,12 +131,7 @@ const Contact = () => {
                   <div>
                     <p className="font-medium">{item.label}</p>
                     {item.link ? (
-                      <a
-                        href={item.link}
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={item.link} className="text-muted-foreground hover:text-primary transition-colors" target="_blank" rel="noopener noreferrer">
                         {item.value}
                       </a>
                     ) : (
@@ -127,10 +143,12 @@ const Contact = () => {
             </div>
 
             <div className="pt-6">
-              <Button className="w-full sm:w-auto bg-gradient-primary hover:opacity-90 text-white border-0">
-                <Download size={16} className="mr-2" />
-                Download Resume
-              </Button>
+              <a href={RESUME_URL} onClick={handleResumeDownload} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full sm:w-auto bg-gradient-primary hover:opacity-90 text-white border-0">
+                  <Download size={16} className="mr-2" />
+                  Download Resume
+                </Button>
+              </a>
             </div>
           </div>
 
@@ -143,70 +161,28 @@ const Contact = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium mb-2">
-                      Name
-                    </label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Your full name"
-                      required
-                    />
+                    <label htmlFor="name" className="block text-sm font-medium mb-2">Name</label>
+                    <Input id="name" name="name" value={formData.name} onChange={handleInputChange} placeholder="Your full name" required />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-2">
-                      Email
-                    </label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="your.email@example.com"
-                      required
-                    />
+                    <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
+                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="your.email@example.com" required />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                    Subject
-                  </label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleInputChange}
-                    placeholder="What’s this about?"
-                    required
-                  />
+                  <label htmlFor="subject" className="block text-sm font-medium mb-2">Subject</label>
+                  <Input id="subject" name="subject" value={formData.subject} onChange={handleInputChange} placeholder="What’s this about?" required />
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium mb-2">
-                    Message
-                  </label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    placeholder="Share your idea or opportunity here..."
-                    rows={6}
-                    required
-                  />
+                  <label htmlFor="message" className="block text-sm font-medium mb-2">Message</label>
+                  <Textarea id="message" name="message" value={formData.message} onChange={handleInputChange} placeholder="Share your idea or opportunity here..." rows={6} required />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-white"
-                  size="lg"
-                >
+                <Button disabled={loading} type="submit" className="w-full bg-primary hover:bg-primary/90 text-white" size="lg">
                   <Send size={16} className="mr-2" />
-                  Send Message
+                  {loading ? "Sending..." : "Send Message"}
                 </Button>
               </form>
             </CardContent>
