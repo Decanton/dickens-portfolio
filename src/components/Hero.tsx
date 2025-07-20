@@ -85,7 +85,7 @@ const Hero = () => {
                   if (section) section.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                View Projects
+                View Projects & Personal Experience
               </Button>
             </div>
 
