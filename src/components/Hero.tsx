@@ -54,7 +54,7 @@ const Hero = () => {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Bridging Engineering, Code, and Data to Build Purposeful Solutions.
+              Merging Engineering, Software, and Data to Solve Real-World Problems.
             </h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
@@ -71,7 +71,7 @@ const Hero = () => {
                   size="lg"
                   className="bg-accent hover:bg-accent/90 text-white border-0 shadow-glow"
                 >
-                  Let's Connect
+                  Let Us Connect
                   <ArrowRight size={20} className="ml-2" />
                 </Button>
               </a>
