@@ -54,7 +54,7 @@ const Hero = () => {
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-              Merging Engineering, Software, and Data to Solve Real-World Problems.
+              Merging Engineering, Software, and Data to Solve Real World Problems.
             </h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
