@@ -15,7 +15,7 @@ const Navigation = () => {
 
   const navItems = [
     { label: "About", id: "about" },
-    { label: "Projects", id: "projects" },
+    { label: "Projects & Personal Experience", id: "projects" },
     { label: "Contact", id: "contact" }
   ];
 
